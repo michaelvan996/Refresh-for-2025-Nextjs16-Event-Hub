@@ -4,6 +4,7 @@ import "./globals.css";
 import LightRays from "@/components/LightRays";
 import Navbar from "@/components/Navbar";
 import React from "react";
+import PostHogAnalytics from "@/components/PostHogAnalytics";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-schibsted-grotesk",
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body
         className={`${schibstedGrotesk.variable} ${martianMono.variable} min-h-screen antialiased`}
       >
+      <PostHogAnalytics />
       <Navbar />
           <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
               <LightRays
