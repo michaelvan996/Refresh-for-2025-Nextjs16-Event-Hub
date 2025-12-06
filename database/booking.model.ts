@@ -37,10 +37,7 @@ const BookingSchema = new Schema<IBooking>(
 // Add index on eventId for faster lookup queries
 BookingSchema.index({ eventId: 1 });
 
-// Create compound index for common queries (event bookings by date)
-BookingSchema.index({email: 1});
-    
-// Create index on email for user bookinbg lookups
+// Create index on email for user booking lookups
 BookingSchema.index({email: 1});
 
 /**
