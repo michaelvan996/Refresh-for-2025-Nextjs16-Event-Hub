@@ -3,10 +3,6 @@ import mongoose from 'mongoose';
 // Define the MongoDB connection string from environment variables
 const MONGODB_URI = process.env.MONGODB_URI;
 
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
 async function connectDB(): Promise<typeof mongoose> {
   if (!MONGODB_URI) {
     throw new Error(

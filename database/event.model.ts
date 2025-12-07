@@ -112,40 +112,69 @@ EventSchema.index({ slug: 1 });
  * Pre-save hook to generate slug, normalize date and time
  * Only regenerates slug if title has changed
  */
-EventSchema.pre('save', async function (next) {
+EventSchema.pre('save', async function () {
   // Generate slug from title if title is modified or new document
   if (this.isModified('title')) {
-    this.slug = this.title
+    const baseSlug = this.title
       .toLowerCase()
       .replace(/[^\w\s-]/g, '') // Remove special characters
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
       .trim();
+
+    // Ensure slug uniqueness by checking existing slugs in the collection
+    const Model = this.constructor as any;
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = escapeRegex(baseSlug);
+    const pattern = new RegExp(`^${escaped}(?:-\\d+)?$`, 'i');
+
+    const query: any = { slug: pattern };
+    if ((this as any)._id) {
+      query._id = { $ne: (this as any)._id };
+    }
+
+    const existing: Array<{ slug: string }> = await Model.find(query)
+      .select('slug')
+      .lean();
+
+    // Decide on suffix
+    let hasBase = false;
+    let maxSuffix = 0;
+    const suffixRe = new RegExp(`^${escaped}-(\\d+)$`, 'i');
+    for (const doc of existing) {
+      const s = (doc.slug || '').toLowerCase();
+      if (s === baseSlug) {
+        hasBase = true;
+        continue;
+      }
+      const m = s.match(suffixRe);
+      if (m && m[1]) {
+        const n = parseInt(m[1], 10);
+        if (!Number.isNaN(n) && n > maxSuffix) maxSuffix = n;
+      }
+    }
+
+    const nextNum = hasBase ? maxSuffix + 1 : 0;
+    this.slug = nextNum === 0 ? baseSlug : `${baseSlug}-${nextNum}`;
   }
 
   // Normalize date to ISO format if date is modified
   if (this.isModified('date')) {
-    try {
-      const parsedDate = new Date(this.date);
-      if (isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid date format');
-      }
-      // Store as ISO date string (YYYY-MM-DD)
-      this.date = parsedDate.toISOString().split('T')[0];
-    } catch (error) {
-      return next(new Error('Date must be a valid date format'));
+    const parsedDate = new Date(this.date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error('Date must be a valid date format');
     }
+    // Store as ISO date string (YYYY-MM-DD)
+    this.date = parsedDate.toISOString().split('T')[0];
   }
 
   // Normalize time format (HH:MM) if time is modified
   if (this.isModified('time')) {
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(this.time)) {
-      return next(new Error('Time must be in HH:MM format (e.g., 14:30)'));
+      throw new Error('Time must be in HH:MM format (e.g., 14:30)');
     }
   }
-
-  next();
 });
 
 // Use existing model if it exists (prevents model overwrite during hot reload)
