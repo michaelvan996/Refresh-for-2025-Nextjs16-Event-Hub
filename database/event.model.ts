@@ -1,7 +1,7 @@
 import { Schema, model, models, Document } from 'mongoose';
 
 // TypeScript interface for Event document
-export interface IEvent extends Document {
+export interface Event extends Document {
   title: string;
   slug: string;
   description: string;
@@ -20,7 +20,7 @@ export interface IEvent extends Document {
   updatedAt: Date;
 }
 
-const EventSchema = new Schema<IEvent>(
+const EventSchema = new Schema<Event>(
   {
     title: {
       type: String,
@@ -178,6 +178,6 @@ EventSchema.pre('save', async function () {
 });
 
 // Use existing model if it exists (prevents model overwrite during hot reload)
-const Event = models.Event || model<IEvent>('Event', EventSchema);
+const Event = models.Event || model<Event>('Event', EventSchema);
 
 export default Event;
