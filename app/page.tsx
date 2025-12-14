@@ -1,9 +1,13 @@
 import React from 'react'
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
-import events from "@/lib/constants";
 
-const Page = () => {
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+const Page = async () => {
+    const response = await fetch(`${BASE_URL}/api/events`);
+    const { events } = await response.json();
+
     return (
         <section>
             <h1 className="text-center">Welcome to tech hub <br /> Event of a lifetime</h1>
@@ -15,9 +19,9 @@ const Page = () => {
                 <h3>Feature Events</h3>
 
                 <ul className="events">
-                    { events.map((event) => (
-                        <li key={event.title} className="list-none">
-                            <EventCard {...event}/>
+                    { events && events.length > 0 && events.map((event: any) => (
+                        <li key={event.slug} className="list-none">
+                            <EventCard title={""} image={""} slug={""} location={""} date={""} time={""} {...event} />
                         </li>
                     ))}
                 </ul>
