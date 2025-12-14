@@ -1,7 +1,7 @@
 import { Schema, model, models, Document } from 'mongoose';
 
 // TypeScript interface for Event document
-export interface IEvent extends Document {
+export interface Event extends Document {
   title: string;
   slug: string;
   description: string;
@@ -20,7 +20,7 @@ export interface IEvent extends Document {
   updatedAt: Date;
 }
 
-const EventSchema = new Schema<IEvent>(
+const EventSchema = new Schema<Event>(
   {
     title: {
       type: String,
@@ -105,8 +105,16 @@ const EventSchema = new Schema<IEvent>(
   }
 );
 
-// Add index on slug for faster queries
-EventSchema.index({ slug: 1 });
+// Note: Do not add a separate non-unique index on slug here because the
+// `unique: true` option above already creates a unique index. Adding both
+// would cause a duplicate index warning from Mongoose during development.
+
+// Prevent accidental duplicate events: same title + date + time + venue is considered the same event
+// This compound unique index enforces that constraint at the database level
+EventSchema.index(
+  { title: 1, date: 1, time: 1, venue: 1 },
+  { unique: true, name: 'uniq_event_identity' }
+);
 
 /**
  * Pre-save hook to generate slug, normalize date and time
@@ -178,6 +186,6 @@ EventSchema.pre('save', async function () {
 });
 
 // Use existing model if it exists (prevents model overwrite during hot reload)
-const Event = models.Event || model<IEvent>('Event', EventSchema);
+const Event = models.Event || model<Event>('Event', EventSchema);
 
 export default Event;
