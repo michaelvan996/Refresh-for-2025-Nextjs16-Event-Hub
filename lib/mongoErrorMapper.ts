@@ -13,30 +13,69 @@ type DuplicateKeyInfo = {
 
 type UnknownRecord = Record<string, unknown>;
 
+/**
+ * Determines whether a value is a non-null object that can be treated as an UnknownRecord.
+ *
+ * @returns `true` if `value` is an object and not `null`, `false` otherwise.
+ */
 function isRecord(value: unknown): value is UnknownRecord {
   return !!value && typeof value === 'object';
 }
 
+/**
+ * Retrieve a property's value if it is a string.
+ *
+ * @returns The string value of `obj[key]` if it is a string, `undefined` otherwise.
+ */
 function getStringProp(obj: UnknownRecord, key: string): string | undefined {
   const v = obj[key];
   return typeof v === 'string' ? v : undefined;
 }
 
+/**
+ * Retrieve a numeric property from a record if present.
+ *
+ * @param obj - The record to read the property from
+ * @param key - The property name to retrieve
+ * @returns The property's numeric value if `obj[key]` is a number, `undefined` otherwise
+ */
 function getNumberProp(obj: UnknownRecord, key: string): number | undefined {
   const v = obj[key];
   return typeof v === 'number' ? v : undefined;
 }
 
+/**
+ * Retrieve an object-valued property from a record.
+ *
+ * @param obj - Source record to read the property from
+ * @param key - Property name to retrieve
+ * @returns The property's value as a record if it is a non-null object, `undefined` otherwise
+ */
 function getRecordProp(obj: UnknownRecord, key: string): UnknownRecord | undefined {
   const v = obj[key];
   return isRecord(v) ? v : undefined;
 }
 
+/**
+ * Get the property at `key` as an array if present.
+ *
+ * @param obj - The record to read the property from
+ * @param key - The property name to retrieve
+ * @returns The array value of the property, or `undefined` if the property is missing or not an array
+ */
 function getArrayProp(obj: UnknownRecord, key: string): unknown[] | undefined {
   const v = obj[key];
   return Array.isArray(v) ? v : undefined;
 }
 
+/**
+ * Extracts the names of fields that caused a duplicate-key error and optional key/value pairs from a Mongo/Mongoose error object.
+ *
+ * The function looks for duplicate-key information in `keyValue`, in `writeErrors` (bulk operations), or by parsing a `dup key` pattern in the error `message`. If no field names can be determined, it returns a fallback field name `['unique field']`.
+ *
+ * @param errObj - The MongoDB/Mongoose error record to inspect (may contain `keyValue`, `writeErrors`, or a `message` with a dup key fragment)
+ * @returns An object with `fields` (the names of fields that caused the duplicate) and an optional `keyValue` map of field -> duplicated value when available
+ */
 function extractDuplicateFields(errObj: UnknownRecord): DuplicateKeyInfo {
   // Mongoose duplicate error usually has code 11000 and keyValue
   const keyValue = getRecordProp(errObj, 'keyValue');
@@ -86,6 +125,15 @@ function extractDuplicateFields(errObj: UnknownRecord): DuplicateKeyInfo {
   return { fields: ['unique field'] };
 }
 
+/**
+ * Map a MongoDB/Mongoose error object to a standardized ApiError suitable for HTTP responses.
+ *
+ * Recognizes duplicate-key (unique index) errors, validation errors, and cast errors and
+ * converts them into structured response bodies with appropriate HTTP status codes.
+ *
+ * @param err - The error value thrown by MongoDB/Mongoose to map
+ * @returns An ApiError with `status` and `body` describing the mapped error, or `null` if the error is not mappable
+ */
 export function mapMongoError(err: unknown): ApiError | null {
   if (!isRecord(err)) return null;
 

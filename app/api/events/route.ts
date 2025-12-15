@@ -52,10 +52,23 @@ type CloudinaryUploadResult = {
   public_id: string;
 };
 
+/**
+ * Create a JSON HTTP error response.
+ *
+ * @param status - The HTTP status code to send
+ * @param body - The error payload to include in the response
+ * @returns A NextResponse containing the JSON error body with the given HTTP status
+ */
 function jsonError(status: number, body: ErrorResponse): NextResponse {
   return NextResponse.json(body, { status });
 }
 
+/**
+ * Convert an Event MongoDB document into the API-facing EventResponse shape.
+ *
+ * @param doc - The Event document from the database
+ * @returns The event formatted for API responses with `id` as a string and `createdAt`/`updatedAt` as ISO timestamp strings
+ */
 function toEventResponse(doc: EventDocument): EventResponse {
   return {
     id: doc._id.toString(),
@@ -78,16 +91,27 @@ function toEventResponse(doc: EventDocument): EventResponse {
   };
 }
 
+/**
+ * Get a trimmed string value for a form field or an empty string if the field is missing or not a string.
+ *
+ * @param formData - The FormData object to read from
+ * @param key - The form field name to retrieve
+ * @returns The trimmed string value for `key`, or an empty string if absent or not a string
+ */
 function getFormString(formData: FormData, key: string): string {
   const v = formData.get(key);
   return typeof v === 'string' ? v.trim() : '';
 }
 
 /**
- * Accepts:
- * - multiple form fields with the same key
- * - a JSON array string (e.g. ["a","b"])
- * - a comma-separated string
+ * Parses one or more string values for a form field into a normalized array of strings.
+ *
+ * Supports multiple form fields with the same key, a JSON array string (e.g. `["a","b"]`),
+ * or a comma-separated string; trims items and filters out empty entries.
+ *
+ * @param formData - The FormData to read values from
+ * @param key - The form field name to extract
+ * @returns An array of trimmed, non-empty strings parsed from the field, or an empty array if none
  */
 function getFormStringArray(formData: FormData, key: string): string[] {
   const all = formData.getAll(key);
@@ -124,6 +148,12 @@ function getFormStringArray(formData: FormData, key: string): string[] {
   return [trimmed];
 }
 
+/**
+ * Validates that all required event creation fields are present and that `agenda` and `tags` each contain at least one item.
+ *
+ * @param input - The create-event payload to validate.
+ * @returns `{ ok: true }` when validation passes; otherwise `{ ok: false; response: NextResponse }` where `response` is a 400 Bad Request JSON describing the validation errors (missing fields or empty `agenda`/`tags`).
+ */
 function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok: false; response: NextResponse } {
   const required: Array<keyof CreateEventInput> = [
     'title',
@@ -175,6 +205,13 @@ function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok:
   return { ok: true };
 }
 
+/**
+ * Uploads an image file to Cloudinary (stored under the "DevEvent" folder) and returns its upload identifiers.
+ *
+ * @param file - The image File (e.g., from FormData) to upload
+ * @returns An object with `secure_url` (public HTTPS URL) and `public_id` (Cloudinary asset id)
+ * @throws Error if the upload fails or Cloudinary returns no result
+ */
 async function uploadEventImage(file: File): Promise<CloudinaryUploadResult> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -189,6 +226,17 @@ async function uploadEventImage(file: File): Promise<CloudinaryUploadResult> {
   });
 }
 
+/**
+ * Handle creation of a new event from multipart/form-data: validates input, checks for duplicates,
+ * uploads the event image to Cloudinary, creates the event in the database, and returns the created event or a structured error response.
+ *
+ * The handler performs a preflight duplicate check by title/date/time/venue before uploading the image,
+ * and attempts a best-effort rollback (deleting the uploaded image) if database write fails.
+ *
+ * @returns A NextResponse containing either:
+ *  - a 201 success payload with the created event, or
+ *  - a structured error payload with an appropriate HTTP status (validation errors, missing image, duplicate event, upload failure, database errors, or internal server error).
+ */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
@@ -284,6 +332,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 }
 
+/**
+ * Fetches all events from the database and returns them in a JSON API response.
+ *
+ * @returns A NextResponse containing `{ message: string, events: EventResponse[] }` with status 200 on success; on failure returns a JSON error payload with an appropriate HTTP status code and error details.
+ */
 export async function GET(): Promise<NextResponse> {
   try {
     await connectDB();

@@ -37,15 +37,22 @@ type EventResponse = {
   updatedAt: string;
 };
 
+/**
+ * Create a JSON HTTP error response with a given status and error body.
+ *
+ * @param status - HTTP status code for the response
+ * @param body - The error payload to serialize as JSON
+ * @returns The HTTP response containing the provided error body and status
+ */
 function jsonError(status: number, body: ErrorResponse): NextResponse {
   return NextResponse.json(body, { status });
 }
 
 /**
- * Validates and normalizes a slug route param.
- * - Ensures it is present and URL-decodable
- * - Normalizes to lowercase
- * - Restricts to a conservative slug charset for safety
+ * Validate and normalize a slug route parameter.
+ *
+ * @param input - Raw route `slug` parameter (may be URL-encoded or undefined)
+ * @returns `{ ok: true, slug }` with the normalized lowercase slug when valid; `{ ok: false, response }` containing a JSON error `NextResponse` when invalid
  */
 function parseSlug(input: string | undefined): { ok: true; slug: string } | { ok: false; response: NextResponse } {
   if (!input) {
@@ -89,6 +96,14 @@ function parseSlug(input: string | undefined): { ok: true; slug: string } | { ok
   return { ok: true, slug };
 }
 
+/**
+ * Build a public EventResponse object from a MongoDB Event document.
+ *
+ * Converts the document's `_id` to a string `id` and serializes `createdAt` and `updatedAt` to ISO strings; all other event fields are copied directly.
+ *
+ * @param doc - The MongoDB Event document to transform
+ * @returns An EventResponse with `id` as the document `_id` string and ISO-formatted `createdAt`/`updatedAt`
+ */
 function toEventResponse(doc: EventDocument): EventResponse {
   return {
     id: doc._id.toString(),
@@ -111,6 +126,16 @@ function toEventResponse(doc: EventDocument): EventResponse {
   };
 }
 
+/**
+ * Handle GET requests for /api/events/[slug] by validating the slug and returning the matching event.
+ *
+ * Validates and normalizes the route slug, queries the database for the event, and returns a standardized JSON response.
+ *
+ * @param params - Route parameters: the `params` promise resolves to an object containing the `slug` route parameter.
+ * @returns A NextResponse whose JSON body is either:
+ *  - on success: `{ message: 'Event fetched successfully', event: EventResponse }` with status 200, or
+ *  - on failure: an `ErrorResponse` JSON body with an appropriate HTTP status (e.g., 400 for invalid/missing slug, 404 if not found, 500 for internal errors, or a mapped Mongo error status).
+ */
 export async function GET(_req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
   const { slug } = await params;
   const parsed = parseSlug(slug);
