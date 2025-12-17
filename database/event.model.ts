@@ -145,20 +145,22 @@ EventSchema.pre('save', async function () {
       .select('slug')
       .lean();
 
-    // Decide on suffix
+    // Decide on suffix using simple prefix check and numeric parsing
     let hasBase = false;
     let maxSuffix = 0;
-    const suffixRe = new RegExp(`^${escaped}-(\\d+)$`, 'i');
     for (const doc of existing) {
       const s = (doc.slug || '').toLowerCase();
       if (s === baseSlug) {
         hasBase = true;
         continue;
       }
-      const m = s.match(suffixRe);
-      if (m && m[1]) {
-        const n = parseInt(m[1], 10);
-        if (!Number.isNaN(n) && n > maxSuffix) maxSuffix = n;
+      // If slug matches baseSlug-NUMBER, extract NUMBER and track the max
+      if (s.startsWith(baseSlug + '-')) {
+        const suffix = s.substring(baseSlug.length + 1);
+        const n = parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > maxSuffix) {
+          maxSuffix = n;
+        }
       }
     }
 

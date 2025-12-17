@@ -6,6 +6,15 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const Page = async () => {
     const response = await fetch(`${BASE_URL}/api/events`);
+    if (!response.ok) {
+        // Handle error - could return empty state or throw
+        return (
+            <section>
+                <h1 className="text-center">Welcome to tech hub <br /> Event of a lifetime</h1>
+                <p className="text-center mt-5">Unable to load events. Please try again later.</p>
+            </section>
+        );
+    }
     const { events } = await response.json();
 
     return (
