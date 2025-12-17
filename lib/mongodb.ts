@@ -35,15 +35,18 @@ async function connectDB(): Promise<typeof mongoose> {
 
   // Return existing connection promise if one is in progress
   if (!cached.promise) {
+    if (!MONGODB_URI) {
+      throw new Error('Please define the MONGODB_URI environment variable');
+    }
+
     const opts = {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       return mongoose;
     });
   }
-
   try {
     cached.conn = await cached.promise;
   } catch (e) {
