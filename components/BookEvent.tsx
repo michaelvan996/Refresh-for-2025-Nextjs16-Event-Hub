@@ -30,7 +30,7 @@ const BookEvent = () => {
                         />
                     </div>
 
-                    <button type="submit" className="button-submit" onClick={() => setSubmitted(true)}>Submit</button>
+                    <button type="submit" className="button-submit">Submit</button>
                 </form>
             )}
         </div>

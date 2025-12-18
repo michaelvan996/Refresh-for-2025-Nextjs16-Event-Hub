@@ -248,6 +248,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return jsonError(400, { message: 'Image file is required', code: 'MISSING_IMAGE' });
     }
 
+    let tags = JSON.parse(formData.get('tags') as string);
+    const input: CreateEventInput = {
     const input: CreateEventInput = {
       title: getFormString(formData, 'title'),
       description: getFormString(formData, 'description'),
@@ -301,7 +303,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     try {
-      const created = await Event.create({ ...input, image: uploaded.secure_url });
+      const created = await Event.create({
+          ...input,
+          image: uploaded.secure_url,
+          tags: tags,
+          agenda: agenda});
       return NextResponse.json(
         {
           message: 'Event created successfully',
