@@ -249,6 +249,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     let tags = JSON.parse(formData.get('tags') as string);
+    let agenda = JSON.parse(formData.get('agenda') as string);
 
     const input: CreateEventInput = {
       title: getFormString(formData, 'title'),
@@ -303,7 +304,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     try {
-      const created = await Event.create({ ...input, image: uploaded.secure_url });
+      const created = await Event.create({
+          ...input,
+          image: uploaded.secure_url,
+          tags: tags,
+          agenda: agenda});
       return NextResponse.json(
         {
           message: 'Event created successfully',
