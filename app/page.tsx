@@ -1,10 +1,13 @@
 import React from 'react'
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
+import {cacheLife} from "next/cache";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const Page = async () => {
+    'use cache';
+    cacheLife('hours')
     const response = await fetch(`${BASE_URL}/api/events`);
     if (!response.ok) {
         // Handle error - could return empty state or throw
