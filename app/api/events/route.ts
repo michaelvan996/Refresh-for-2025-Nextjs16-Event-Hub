@@ -248,6 +248,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return jsonError(400, { message: 'Image file is required', code: 'MISSING_IMAGE' });
     }
 
+    let tags = JSON.parse(formData.get('tags') as string);
+
     const input: CreateEventInput = {
       title: getFormString(formData, 'title'),
       description: getFormString(formData, 'description'),
