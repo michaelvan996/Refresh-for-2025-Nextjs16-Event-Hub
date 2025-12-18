@@ -249,8 +249,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     let tags = JSON.parse(formData.get('tags') as string);
-    let agenda = JSON.parse(formData.get('agenda') as string);
-
+    const input: CreateEventInput = {
     const input: CreateEventInput = {
       title: getFormString(formData, 'title'),
       description: getFormString(formData, 'description'),
