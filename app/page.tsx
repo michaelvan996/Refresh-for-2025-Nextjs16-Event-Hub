@@ -1,24 +1,13 @@
 import React from 'react'
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
-import {cacheLife} from "next/cache";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import connectDB from "@/lib/mongodb";
+import Event from "@/database/event.model";
+import {IEvent} from "@/database";
 
 const Page = async () => {
-    'use cache';
-    cacheLife('hours')
-    const response = await fetch(`${BASE_URL}/api/events`);
-    if (!response.ok) {
-        // Handle error - could return empty state or throw
-        return (
-            <section>
-                <h1 className="text-center">Welcome to tech hub <br /> Event of a lifetime</h1>
-                <p className="text-center mt-5">Unable to load events. Please try again later.</p>
-            </section>
-        );
-    }
-    const { events } = await response.json();
+    await connectDB();
+    const events = await Event.find().sort({ createdAt: -1 }).lean() as IEvent[];
 
     return (
         <section>
