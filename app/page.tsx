@@ -3,7 +3,7 @@ import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
 import connectDB from "@/lib/mongodb";
 import Event from "@/database/event.model";
-import {IEvent} from "@/database";
+import { IEvent } from "@/database";
 
 const Page = async () => {
     await connectDB();
