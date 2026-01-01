@@ -1,7 +1,29 @@
-import React from "react";
-import { createEventAction } from "@/lib/actions/event.actions";
+"use client";
+
+import React, { useTransition } from "react";
 
 const CreateEventPage = () => {
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      try {
+        // Dynamically import the server action to avoid evaluation during static generation
+        const { createEventAction } = await import(
+          "@/lib/actions/event.actions"
+        );
+        await createEventAction(formData);
+      } catch (error) {
+        console.error("Failed to create event:", error);
+        // You could add error handling UI here
+        alert("Failed to create event. Please try again.");
+      }
+    });
+  };
+
   return (
     <section id="event">
       <div className="header">
@@ -16,7 +38,7 @@ const CreateEventPage = () => {
         <div className="content">
           <form
             id="create-event-form"
-            action={createEventAction}
+            onSubmit={handleSubmit}
             className="flex flex-col gap-6"
           >
             <section className="section-shell flex flex-col gap-4">
@@ -164,8 +186,12 @@ const CreateEventPage = () => {
             </section>
 
             <div className="flex justify-end">
-              <button type="submit" className="primary-submit-btn">
-                Publish event
+              <button
+                type="submit"
+                className="primary-submit-btn"
+                disabled={isPending}
+              >
+                {isPending ? "Publishing..." : "Publish event"}
               </button>
             </div>
           </form>
