@@ -140,46 +140,149 @@
     }
 
     #explore-btn {
-        @apply border-dark-200 bg-dark-100 flex w-fit cursor-pointer  rounded-full border px-8 py-3.5 max-sm:w-full text-center;
+        @apply flex w-fit cursor-pointer items-center justify-center rounded-full border border-dark-200 px-8 py-3.5 text-center max-sm:w-full;
+        background-image: linear-gradient(120deg, #59deca, #38bdf8);
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+        transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, filter 0.15s ease-out;
 
         a {
-            @apply flex-center gap-2 text-center w-full;
+            @apply flex-center w-full gap-2 text-sm font-medium text-black;
         }
+    }
+
+    #explore-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 26px 70px rgba(15, 23, 42, 0.95);
+        filter: brightness(1.03);
+    }
+
+    #host-event-btn {
+        @apply inline-flex items-center justify-center rounded-full border border-border-dark/70 px-8 py-3.5 text-sm font-medium text-light-100;
+        background-color: rgba(15, 23, 42, 0.7);
+        text-decoration: none;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(18px);
+        transition:
+            transform 0.15s ease-out,
+            box-shadow 0.15s ease-out,
+            border-color 0.15s ease-out,
+            background-color 0.15s ease-out;
+    }
+
+    #host-event-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+        border-color: var(--primary);
+        background-color: rgba(15, 23, 42, 0.9);
     }
 
     header {
         @apply glass sticky top-0 z-50;
 
         nav {
-            @apply flex flex-row justify-between mx-auto container sm:px-10 px-5 py-4;
+            @apply mx-auto flex flex-row items-center justify-between container sm:px-10 px-5 py-4;
         }
 
         .logo {
-            @apply flex flex-row items-center gap-2;
-
-            p {
-                @apply text-xl font-bold italic max-sm:hidden;
-            }
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        ul {
-            @apply flex flex-row items-center gap-6;
+        .logo-mark {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.9rem;
+            background: linear-gradient(135deg, #59deca, #60a5fa);
+            box-shadow: 0 14px 40px rgba(10, 148, 133, 0.65);
+            overflow: hidden;
+        }
+
+        .logo-mark::before {
+            content: "";
+            position: absolute;
+            inset: 18%;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.65);
+            opacity: 0.85;
+        }
+
+        .logo-mark-core {
+            position: relative;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 999px;
+            background: #020617;
+            box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.85);
+        }
+
+        .logo-wordmark {
+            display: flex;
+            flex-direction: column;
+            gap: 0.05rem;
+        }
+
+        .logo-text-primary {
+            font-family: var(--font-schibsted-grotesk), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+
+        .logo-text-secondary {
+            font-family: var(--font-martian-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--color-light-200);
+        }
+
+        .nav-links {
+            @apply flex flex-row items-center gap-6 text-sm;
+        }
+
+        .nav-links a {
+            @apply text-light-100 transition-colors hover:text-primary;
+        }
+
+        .nav-links .nav-link--active {
+            position: relative;
+            color: var(--primary);
+        }
+
+        .nav-links .nav-link--active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -0.3rem;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #59deca, #38bdf8);
+            opacity: 0.95;
         }
     }
 
     .events {
-        @apply grid md:grid-cols-3 gap-10 sm:grid-cols-2 grid-cols-1;
+        @apply grid xl:grid-cols-4 md:grid-cols-3 gap-10 sm:grid-cols-2 grid-cols-1;
     }
 
     #event-card {
-        @apply flex flex-col gap-3;
+        @apply relative flex flex-col gap-4 rounded-2xl border border-border-dark bg-dark-100/70 p-4 transition-transform duration-200;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65);
 
         .poster {
-            @apply h-[300px] w-full rounded-lg object-cover;
+            @apply h-[260px] w-full rounded-xl object-cover;
+            transition: transform 0.3s ease-out;
         }
 
         .title {
-            @apply text-[20px] font-semibold line-clamp-1;
+            @apply text-lg font-semibold leading-snug line-clamp-1;
         }
 
         p {
@@ -187,59 +290,81 @@
         }
 
         .datetime {
-            @apply text-light-200 flex flex-row flex-wrap items-center gap-4;
+            @apply mt-1 flex flex-row flex-wrap items-center gap-4 text-light-200;
 
             div {
-                @apply flex flex-row gap-2;
+                @apply inline-flex flex-row items-center gap-2 rounded-full bg-dark-200/70 px-3 py-1.5;
             }
         }
     }
 
+    #event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.9);
+    }
+
+    #event-card:hover .poster {
+        transform: scale(1.03);
+    }
+
     #event {
+        @apply mx-auto flex w-full max-w-6xl flex-col gap-10 py-10;
+
         .header {
-            @apply flex w-2/3 flex-col items-start gap-4 max-lg:w-full mb-10;
+            @apply mx-auto flex w-full max-w-3xl flex-col gap-4 text-left lg:items-start;
+        }
+
+        .header h1 {
+            @apply text-4xl max-sm:text-3xl;
+        }
+
+        .header p {
+            @apply text-light-100 text-base sm:text-lg;
         }
 
         .details {
-            @apply flex w-full flex-col lg:flex-row gap-12 items-start mt-12 max-lg:items-center;
+            @apply mt-4 flex w-full flex-col gap-10 lg:flex-row lg:items-start;
+        }
 
-            .content {
-                @apply flex flex-[2] flex-col gap-8 max-lg:w-full;
+        .details .content {
+            @apply flex flex-[2] flex-col gap-6 max-lg:w-full;
+        }
 
-                .banner {
-                    @apply max-h-[457px] w-full rounded-lg object-cover;
-                }
+        .details .content .banner {
+            @apply max-h-[457px] w-full rounded-2xl object-cover;
+            box-shadow: 0 22px 65px rgba(0, 0, 0, 0.8);
+        }
 
-                .agenda {
-                    @apply flex flex-col gap-2;
+        .details .content .agenda {
+            @apply flex flex-col gap-3;
+        }
 
-                    ul {
-                        li {
-                            @apply text-light-100 text-lg max-sm:text-sm;
-                        }
-                    }
-                }
-            }
+        .details .content .agenda ul li {
+            @apply text-light-100 text-base sm:text-lg;
+        }
 
-            .booking {
-                @apply flex-1 w-full p-4 border-l border-gray-700;
+        .booking {
+            @apply flex-1 w-full lg:max-w-sm;
+        }
 
-                .signup-card {
-                    @apply bg-dark-100 border-dark-200 card-shadow flex w-full flex-col gap-6 rounded-[10px] border px-5 py-6;
-                }
-            }
+        .booking .signup-card {
+            @apply bg-dark-100/85 border border-border-dark card-shadow flex w-full flex-col gap-5 rounded-2xl px-5 py-6 sm:px-6 sm:py-7;
+        }
+
+        .booking .signup-card h2 {
+            @apply font-schibsted-grotesk text-xl font-semibold;
         }
 
         h2 {
-            @apply font-schibsted-grotesk text-2xl font-bold;
+            @apply font-schibsted-grotesk text-xl font-semibold;
         }
 
         p {
-            @apply text-light-100 text-lg max-sm:text-sm;
+            @apply text-light-100 text-base sm:text-lg;
         }
 
         .flex-col-gap-2 {
-            @apply flex flex-col gap-2;
+            @apply flex flex-col gap-3;
         }
 
         .flex-row-gap-2 {
@@ -247,8 +372,22 @@
         }
     }
 
+    .section-shell {
+        @apply rounded-2xl border border-border-dark bg-dark-100/60 p-5 sm:p-6;
+    }
+
+    .section-label {
+        @apply font-martian-mono text-[11px] uppercase tracking-[0.18em] text-light-200;
+    }
+
+    .section-title {
+        @apply font-schibsted-grotesk text-xl font-semibold;
+    }
+
     .pill {
-        @apply bg-dark-100 text-light-100 text-xs rounded-[6px] px-5 py-2;
+        @apply inline-flex items-center rounded-full border border-dark-200 bg-dark-100/80 px-4 py-1.5 text-xs font-semibold text-light-100;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
     }
 
     #book-event {
@@ -269,5 +408,44 @@
                 @apply bg-primary hover:bg-primary/90 w-full cursor-pointer items-center justify-center rounded-[6px] px-4 py-2.5 text-lg font-semibold text-black;
             }
         }
+    }
+
+    #create-event-form {
+        @apply flex flex-col gap-6;
+    }
+
+    #create-event-form .field-group {
+        @apply flex flex-col gap-2;
+    }
+
+    #create-event-form label {
+        @apply text-sm font-medium text-light-100;
+    }
+
+    #create-event-form input,
+    #create-event-form textarea {
+        @apply bg-dark-200 rounded-[6px] px-5 py-2.5 text-sm text-light-100;
+    }
+
+    #create-event-form textarea {
+        @apply resize-y min-h-[120px];
+    }
+
+    #create-event-form input::placeholder,
+    #create-event-form textarea::placeholder {
+        @apply text-light-200/70;
+    }
+
+    .primary-submit-btn {
+        @apply inline-flex items-center justify-center rounded-full border border-dark-200 px-8 py-3.5 text-sm font-semibold text-black;
+        background-image: linear-gradient(120deg, #59deca, #38bdf8);
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
+        transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, filter 0.15s ease-out;
+    }
+
+    .primary-submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 26px 70px rgba(15, 23, 42, 0.95);
+        filter: brightness(1.03);
     }
 }

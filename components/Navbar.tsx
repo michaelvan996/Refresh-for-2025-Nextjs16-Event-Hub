@@ -1,22 +1,59 @@
+'use client';
+
 import React from 'react'
 import Link from "next/link";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const Navbar = () => {
+    const pathname = usePathname();
+
+    const isActive = (href: string) => {
+        if (href === "/") {
+            return pathname === "/";
+        }
+        return pathname.startsWith(href);
+    };
+
     return (
         <header>
             <nav>
-                <Link href="/" className="logo">
-                    <Image src="/icons/logo.png" alt="logo" width={24} height={24} />
-
-                    <p>TechEvent</p>
+                <Link href="/" className="logo" aria-label="TechHub Events home">
+                    <div className="logo-mark" aria-hidden="true">
+                        <span className="logo-mark-core" />
+                    </div>
+                    <div className="logo-wordmark">
+                        <span className="logo-text-primary">TechHub</span>
+                        <span className="logo-text-secondary">events</span>
+                    </div>
                 </Link>
 
-                <ul>
-                    <Link href="/">Home</Link>
-                    <Link href="/events">Events</Link>
-                    <Link href="/events/create">Create Event</Link>
-                </ul>            </nav>
+                <ul className="nav-links">
+                    <li>
+                        <Link
+                            href="/"
+                            className={`nav-link${isActive("/") ? " nav-link--active" : ""}`}
+                        >
+                            Discover
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="/events"
+                            className={`nav-link${isActive("/events") ? " nav-link--active" : ""}`}
+                        >
+                            Events
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href="/events/create"
+                            className={`nav-link${isActive("/events/create") ? " nav-link--active" : ""}`}
+                        >
+                            Host an event
+                        </Link>
+                    </li>
+                </ul>
+            </nav>
         </header>
     )
 }
