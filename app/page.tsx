@@ -13,10 +13,21 @@ async function FeaturedEvents() {
 
   try {
     await connectDB();
+    
+    // Verify connection before querying
+    const mongoose = await import('mongoose');
+    if (mongoose.default.connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
+    console.log('Fetching events from database...');
     const events = (await Event.find()
       .sort({ createdAt: -1 })
       .limit(6)
-      .lean()) as unknown as IEvent[];
+      .lean()
+      .exec()) as unknown as IEvent[];
+    
+    console.log(`Found ${events.length} events`);
 
     return (
       <div className="space-y-6">

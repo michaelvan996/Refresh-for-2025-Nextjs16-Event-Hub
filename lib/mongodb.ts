@@ -43,6 +43,7 @@ async function connectDB(): Promise<typeof mongoose> {
       return cached.conn;
     } else {
       // Connection is dead, clear cache
+      console.log('MongoDB connection state:', mongoose.connection.readyState, '- reconnecting...');
       cached.conn = null;
     }
   }
@@ -52,18 +53,27 @@ async function connectDB(): Promise<typeof mongoose> {
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      serverSelectionTimeoutMS: 10000, // Increased to 10 seconds for serverless
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      connectTimeoutMS: 10000, // Connection timeout
       family: 4, // Use IPv4, skip trying IPv6
     };
 
+    console.log('Attempting to connect to MongoDB...');
     cached.promise = mongoose.connect(MONGODB_URI, opts)
       .then((mongoose) => {
         console.log('MongoDB connected successfully');
+        console.log('MongoDB connection state:', mongoose.connection.readyState);
+        console.log('MongoDB database name:', mongoose.connection.db?.databaseName);
         return mongoose;
       })
       .catch((error) => {
-        console.error('MongoDB connection error:', error);
+        console.error('MongoDB connection error:', {
+          message: error.message,
+          name: error.name,
+          code: (error as any).code,
+          stack: error.stack,
+        });
         cached.promise = null;
         throw error;
       });
@@ -71,14 +81,22 @@ async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
+    
+    // Verify connection is actually ready
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error(`MongoDB connection not ready. State: ${mongoose.connection.readyState}`);
+    }
+    
+    return cached.conn;
   } catch (e) {
     cached.promise = null;
     const error = e instanceof Error ? e : new Error(String(e));
-    console.error('MongoDB connection failed:', error.message);
+    console.error('MongoDB connection failed:', {
+      message: error.message,
+      stack: error.stack,
+    });
     throw error;
   }
-
-  return cached.conn;
 }
 
 export default connectDB;

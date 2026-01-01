@@ -11,10 +11,20 @@ async function EventsContent() {
 
   try {
     await connectDB();
-
+    
+    // Verify connection before querying
+    const mongoose = await import('mongoose');
+    if (mongoose.default.connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
+    console.log('Fetching all events from database...');
     const events = (await Event.find()
       .sort({ date: 1, time: 1 })
-      .lean()) as unknown as IEvent[];
+      .lean()
+      .exec()) as unknown as IEvent[];
+    
+    console.log(`Found ${events.length} events`);
 
     return (
       <div className="section-shell flex flex-col gap-4">
