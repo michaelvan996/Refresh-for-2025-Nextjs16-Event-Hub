@@ -245,18 +245,15 @@ const EventDetailsContent = async ({
     await connectDB();
 
     console.log(`Fetching event with slug: ${slug}`);
-    event = (await Event.findOne({ slug })
-      .lean()
-      .exec()) as IEvent | null;
+    event = (await Event.findOne({ slug }).lean().exec()) as IEvent | null;
 
     console.log(event ? "Event found" : "Event not found");
 
     if (!event) return notFound();
 
-    const {
-      agenda: rawAgenda,
-      tags: rawTags,
-    } = event as IEvent & { title?: string };
+    const { agenda: rawAgenda, tags: rawTags } = event as IEvent & {
+      title?: string;
+    };
 
     // Parse and normalize tags and agenda to ensure they're arrays
     // This handles cases where data might be stored as string representations like "[\"Cloud\", \"DevOps\"]"
@@ -365,11 +362,7 @@ const EventDetailsContent = async ({
                 alt="pin"
                 label={location}
               />
-              <EventDetailItem
-                icon="/icons/mode.svg"
-                alt="mode"
-                label={mode}
-              />
+              <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode} />
               <EventDetailItem
                 icon="/icons/audience.svg"
                 alt="audience"
@@ -422,8 +415,8 @@ const EventDetailsContent = async ({
           <div className="events">
             {similarEvents.length > 0 &&
               similarEvents.map((similarEvent, index) => {
-                const eventId = (similarEvent as IEvent)._id?.toString() ?? '';
-                const eventSlug = (similarEvent as IEvent).slug ?? '';
+                const eventId = (similarEvent as IEvent)._id?.toString() ?? "";
+                const eventSlug = (similarEvent as IEvent).slug ?? "";
                 return (
                   <EventCard
                     key={eventSlug || eventId || `similar-event-${index}`}

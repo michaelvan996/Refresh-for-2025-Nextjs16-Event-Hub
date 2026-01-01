@@ -1,19 +1,22 @@
-'use server';
+"use server";
 
 import { redirect } from "next/navigation";
 import Event from "@/database/event.model";
 import connectDB from "@/lib/mongodb";
 
 export const getSimilarEventsBySlug = async (slug: string) => {
-    try {
-        await connectDB();
-        const event = await Event.findOne({slug});
+  try {
+    await connectDB();
+    const event = await Event.findOne({ slug });
 
-        return await Event.find({ _id: { $ne: event._id}, tags: { $in: event.tags}}).lean();
-    } catch {
-        return [];
-    }
-}
+    return await Event.find({
+      _id: { $ne: event._id },
+      tags: { $in: event.tags },
+    }).lean();
+  } catch {
+    return [];
+  }
+};
 
 export async function createEventAction(formData: FormData) {
   try {
@@ -45,8 +48,19 @@ export async function createEventAction(formData: FormData) {
       .filter(Boolean);
 
     // Validate required fields
-    if (!title || !description || !overview || !image || !venue || !location || 
-        !date || !time || !mode || !audience || !organizer) {
+    if (
+      !title ||
+      !description ||
+      !overview ||
+      !image ||
+      !venue ||
+      !location ||
+      !date ||
+      !time ||
+      !mode ||
+      !audience ||
+      !organizer
+    ) {
       throw new Error("All fields are required");
     }
 
