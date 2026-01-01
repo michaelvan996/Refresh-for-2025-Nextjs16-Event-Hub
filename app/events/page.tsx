@@ -1,10 +1,15 @@
 import React, { Suspense } from "react";
+import { headers } from "next/headers";
 import connectDB from "@/lib/mongodb";
 import Event from "@/database/event.model";
 import { IEvent } from "@/database";
 import EventCard from "@/components/EventCard";
 
 async function EventsContent() {
+  // Establish request context before any database operations
+  // This satisfies Next.js 16 requirement for accessing time-based operations
+  await headers();
+  
   try {
     await connectDB();
     

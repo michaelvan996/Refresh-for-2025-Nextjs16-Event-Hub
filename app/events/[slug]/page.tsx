@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import BookEvent from "@/components/BookEvent";
 import { IEvent } from "@/database";
 import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
@@ -236,6 +237,10 @@ const EventDetailsContent = async ({
   "use cache";
   cacheLife("hours");
   const { slug } = await params;
+
+  // Establish request context before any database operations
+  // This satisfies Next.js 16 requirement for accessing time-based operations
+  await headers();
 
   try {
     await connectDB();
