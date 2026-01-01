@@ -10,17 +10,17 @@ async function FeaturedEvents() {
   // Establish request context before any database operations
   // This satisfies Next.js 16 requirement for accessing time-based operations
   await headers();
-  
+
   try {
     await connectDB();
-    
-    console.log('Fetching events from database...');
+
+    console.log("Fetching events from database...");
     const events = (await Event.find()
       .sort({ createdAt: -1 })
       .limit(6)
       .lean()
       .exec()) as unknown as IEvent[];
-    
+
     console.log(`Found ${events.length} events`);
 
     return (
@@ -44,7 +44,9 @@ async function FeaturedEvents() {
           </ul>
         ) : (
           <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-8 text-center">
-            <p className="text-light-200">No events found. Be the first to create one!</p>
+            <p className="text-light-200">
+              No events found. Be the first to create one!
+            </p>
           </div>
         )}
       </div>
@@ -58,7 +60,7 @@ async function FeaturedEvents() {
       hasMongoUri: !!process.env.MONGODB_URI,
       mongoUriPrefix: process.env.MONGODB_URI?.substring(0, 20) + "...",
     });
-    
+
     return (
       <div className="space-y-6">
         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
@@ -99,11 +101,8 @@ const Page = () => {
           conferences with your tech community.
         </p>
 
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-7 flex items-center justify-center">
           <ExploreBtn />
-          <a href="/events/create" id="host-event-btn">
-            Host your own event
-          </a>
         </div>
 
         <div className="mt-8 grid w-full gap-4 text-left text-xs text-light-200 sm:grid-cols-3 sm:text-sm">
