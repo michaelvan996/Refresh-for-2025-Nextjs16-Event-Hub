@@ -237,10 +237,21 @@ const EventDetailsContent = async ({
   cacheLife("hours");
   const { slug } = await params;
 
-  await connectDB();
-  const event = (await Event.findOne({ slug }).lean()) as IEvent | null;
+  try {
+    await connectDB();
+    
+    // Verify connection before querying
+    const mongoose = await import('mongoose');
+    if (mongoose.default.connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
+    console.log(`Fetching event with slug: ${slug}`);
+    const event = (await Event.findOne({ slug }).lean().exec()) as IEvent | null;
+    
+    console.log(event ? 'Event found' : 'Event not found');
 
-  if (!event) return notFound();
+    if (!event) return notFound();
 
   const {
     title,
@@ -405,5 +416,9 @@ const EventDetailsContent = async ({
       </div>
     </section>
   );
+  } catch (error) {
+    console.error("Failed to load event:", error);
+    return notFound();
+  }
 };
 export default EventDetailsPage;
