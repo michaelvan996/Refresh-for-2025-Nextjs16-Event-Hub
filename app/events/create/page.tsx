@@ -67,7 +67,11 @@ const CreateEventPage = () => {
 
       <div className="details">
         <div className="content">
-          <form id="create-event-form" action={createEvent} className="flex flex-col gap-6">
+          <form
+            id="create-event-form"
+            action={createEvent}
+            className="flex flex-col gap-6"
+          >
             <section className="section-shell flex flex-col gap-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
                 <div className="field-group flex-1">
@@ -193,7 +197,9 @@ const CreateEventPage = () => {
                   id="agenda"
                   name="agenda"
                   rows={4}
-                  placeholder={"18:00 - Check-in\n18:30 - Opening keynote\n19:15 - Lightning talks"}
+                  placeholder={
+                    "18:00 - Check-in\n18:30 - Opening keynote\n19:15 - Lightning talks"
+                  }
                   required
                 />
               </div>

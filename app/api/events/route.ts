@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { v2 as cloudinary } from 'cloudinary';
-import { Types } from 'mongoose';
+import { NextRequest, NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+import { Types } from "mongoose";
 
-import connectDB from '@/lib/mongodb';
-import Event, { type Event as EventDocument } from '@/database/event.model';
-import { mapMongoError, type ApiError } from '@/lib/mongoErrorMapper';
+import connectDB from "@/lib/mongodb";
+import Event, { type Event as EventDocument } from "@/database/event.model";
+import { mapMongoError, type ApiError } from "@/lib/mongoErrorMapper";
 
 type ErrorResponse = {
   message: string;
@@ -100,7 +100,7 @@ function toEventResponse(doc: EventDocument): EventResponse {
  */
 function getFormString(formData: FormData, key: string): string {
   const v = formData.get(key);
-  return typeof v === 'string' ? v.trim() : '';
+  return typeof v === "string" ? v.trim() : "";
 }
 
 /**
@@ -119,30 +119,36 @@ function getFormStringArray(formData: FormData, key: string): string[] {
   const items: string[] = [];
   if (all.length > 1) {
     for (const v of all) {
-      if (typeof v === 'string') items.push(v.trim());
+      if (typeof v === "string") items.push(v.trim());
     }
     return items.filter(Boolean);
   }
 
   const single = all[0];
-  if (typeof single !== 'string') return [];
+  if (typeof single !== "string") return [];
 
   const trimmed = single.trim();
   if (!trimmed) return [];
 
-  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     try {
       const parsed: unknown = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        return parsed.filter((x): x is string => typeof x === 'string').map((s) => s.trim()).filter(Boolean);
+        return parsed
+          .filter((x): x is string => typeof x === "string")
+          .map((s) => s.trim())
+          .filter(Boolean);
       }
     } catch {
       return [];
     }
   }
 
-  if (trimmed.includes(',')) {
-    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+  if (trimmed.includes(",")) {
+    return trimmed
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   return [trimmed];
@@ -154,18 +160,20 @@ function getFormStringArray(formData: FormData, key: string): string[] {
  * @param input - The create-event payload to validate.
  * @returns `{ ok: true }` when validation passes; otherwise `{ ok: false; response: NextResponse }` where `response` is a 400 Bad Request JSON describing the validation errors (missing fields or empty `agenda`/`tags`).
  */
-function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok: false; response: NextResponse } {
+function validateCreateEventInput(
+  input: CreateEventInput
+): { ok: true } | { ok: false; response: NextResponse } {
   const required: Array<keyof CreateEventInput> = [
-    'title',
-    'description',
-    'overview',
-    'venue',
-    'location',
-    'date',
-    'time',
-    'mode',
-    'audience',
-    'organizer',
+    "title",
+    "description",
+    "overview",
+    "venue",
+    "location",
+    "date",
+    "time",
+    "mode",
+    "audience",
+    "organizer",
   ];
 
   const missing = required.filter((k) => !input[k]);
@@ -173,8 +181,8 @@ function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok:
     return {
       ok: false,
       response: jsonError(400, {
-        message: `Missing required field(s): ${missing.join(', ')}`,
-        code: 'VALIDATION_ERROR',
+        message: `Missing required field(s): ${missing.join(", ")}`,
+        code: "VALIDATION_ERROR",
         details: { missing },
       }),
     };
@@ -184,9 +192,9 @@ function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok:
     return {
       ok: false,
       response: jsonError(400, {
-        message: 'Agenda must contain at least one item',
-        code: 'VALIDATION_ERROR',
-        details: { field: 'agenda' },
+        message: "Agenda must contain at least one item",
+        code: "VALIDATION_ERROR",
+        details: { field: "agenda" },
       }),
     };
   }
@@ -195,9 +203,9 @@ function validateCreateEventInput(input: CreateEventInput): { ok: true } | { ok:
     return {
       ok: false,
       response: jsonError(400, {
-        message: 'Tags must contain at least one item',
-        code: 'VALIDATION_ERROR',
-        details: { field: 'tags' },
+        message: "Tags must contain at least one item",
+        code: "VALIDATION_ERROR",
+        details: { field: "tags" },
       }),
     };
   }
@@ -218,10 +226,17 @@ async function uploadEventImage(file: File): Promise<CloudinaryUploadResult> {
 
   return new Promise<CloudinaryUploadResult>((resolve, reject) => {
     cloudinary.uploader
-      .upload_stream({ resource_type: 'image', folder: 'DevEvent' }, (error, result) => {
-        if (error || !result) return reject(error ?? new Error('Upload returned no result'));
-        resolve({ secure_url: result.secure_url, public_id: result.public_id });
-      })
+      .upload_stream(
+        { resource_type: "image", folder: "DevEvent" },
+        (error, result) => {
+          if (error || !result)
+            return reject(error ?? new Error("Upload returned no result"));
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        }
+      )
       .end(buffer);
   });
 }
@@ -243,24 +258,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const formData = await req.formData();
 
-    const file = formData.get('image');
+    const file = formData.get("image");
     if (!(file instanceof File)) {
-      return jsonError(400, { message: 'Image file is required', code: 'MISSING_IMAGE' });
+      return jsonError(400, {
+        message: "Image file is required",
+        code: "MISSING_IMAGE",
+      });
     }
 
     const input: CreateEventInput = {
-      title: getFormString(formData, 'title'),
-      description: getFormString(formData, 'description'),
-      overview: getFormString(formData, 'overview'),
-      venue: getFormString(formData, 'venue'),
-      location: getFormString(formData, 'location'),
-      date: getFormString(formData, 'date'),
-      time: getFormString(formData, 'time'),
-      mode: getFormString(formData, 'mode'),
-      audience: getFormString(formData, 'audience'),
-      organizer: getFormString(formData, 'organizer'),
-      agenda: getFormStringArray(formData, 'agenda'),
-      tags: getFormStringArray(formData, 'tags'),
+      title: getFormString(formData, "title"),
+      description: getFormString(formData, "description"),
+      overview: getFormString(formData, "overview"),
+      venue: getFormString(formData, "venue"),
+      location: getFormString(formData, "location"),
+      date: getFormString(formData, "date"),
+      time: getFormString(formData, "time"),
+      mode: getFormString(formData, "mode"),
+      audience: getFormString(formData, "audience"),
+      organizer: getFormString(formData, "organizer"),
+      agenda: getFormStringArray(formData, "agenda"),
+      tags: getFormStringArray(formData, "tags"),
     };
 
     const validation = validateCreateEventInput(input);
@@ -273,16 +291,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       time: input.time,
       venue: input.venue,
     })
-      .select('_id slug')
+      .select("_id slug")
       .lean<{ _id: Types.ObjectId; slug: string }>()
       .exec();
 
     if (existing) {
       return NextResponse.json(
         {
-          message: 'An event with the same title, date, time, and venue already exists',
-          code: 'DUPLICATE_EVENT',
-          fields: ['title', 'date', 'time', 'venue'],
+          message:
+            "An event with the same title, date, time, and venue already exists",
+          code: "DUPLICATE_EVENT",
+          fields: ["title", "date", "time", "venue"],
           existing: { id: existing._id.toString(), slug: existing.slug },
         },
         { status: 409 }
@@ -294,23 +313,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       uploaded = await uploadEventImage(file);
     } catch (err: unknown) {
       const mapped: ApiError | null = mapMongoError(err);
-      if (mapped) return NextResponse.json(mapped.body, { status: mapped.status });
+      if (mapped)
+        return NextResponse.json(mapped.body, { status: mapped.status });
 
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      return jsonError(502, { message: 'Image upload failed', code: 'UPLOAD_ERROR', details: { error: message } });
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return jsonError(502, {
+        message: "Image upload failed",
+        code: "UPLOAD_ERROR",
+        details: { error: message },
+      });
     }
 
     try {
       const created = await Event.create({
-          ...input,
-          image: uploaded.secure_url,
-          // Use validated arrays from input
-          tags: input.tags,
-          agenda: input.agenda,
+        ...input,
+        image: uploaded.secure_url,
+        // Use validated arrays from input
+        tags: input.tags,
+        agenda: input.agenda,
       });
       return NextResponse.json(
         {
-          message: 'Event created successfully',
+          message: "Event created successfully",
           event: toEventResponse(created),
         },
         { status: 201 }
@@ -318,45 +342,121 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch (err: unknown) {
       // Best-effort rollback: delete uploaded asset if DB write fails.
       try {
-        await cloudinary.uploader.destroy(uploaded.public_id, { resource_type: 'image' });
+        await cloudinary.uploader.destroy(uploaded.public_id, {
+          resource_type: "image",
+        });
       } catch {
         // ignore rollback failures
       }
 
       const mapped: ApiError | null = mapMongoError(err);
-      if (mapped) return NextResponse.json(mapped.body, { status: mapped.status });
+      if (mapped)
+        return NextResponse.json(mapped.body, { status: mapped.status });
 
       throw err;
     }
   } catch (err: unknown) {
     const mapped: ApiError | null = mapMongoError(err);
-    if (mapped) return NextResponse.json(mapped.body, { status: mapped.status });
+    if (mapped)
+      return NextResponse.json(mapped.body, { status: mapped.status });
 
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('POST /api/events failed:', err);
-    return jsonError(500, { message: 'Event creation failed', code: 'INTERNAL_SERVER_ERROR', details: { error: message } });
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("POST /api/events failed:", err);
+    return jsonError(500, {
+      message: "Event creation failed",
+      code: "INTERNAL_SERVER_ERROR",
+      details: { error: message },
+    });
   }
 }
 
 /**
- * Fetches all events from the database and returns them in a JSON API response.
+ * Fetches events from the database with pagination, search, and filtering support.
  *
- * @returns A NextResponse containing `{ message: string, events: EventResponse[] }` with status 200 on success; on failure returns a JSON error payload with an appropriate HTTP status code and error details.
+ * Query parameters:
+ * - page: Page number (default: 1)
+ * - limit: Items per page (default: 12, max: 100)
+ * - search: Search term for title, description, or tags
+ * - tag: Filter by tag
+ * - mode: Filter by mode (In-person, Online, Hybrid)
+ *
+ * @returns A NextResponse containing paginated events with metadata
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
 
-    const docs = await Event.find().sort({ createdAt: -1 }).select('-__v').exec();
-    const events = docs.map(toEventResponse);
+    const searchParams = req.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "12", 10))
+    );
+    const search = searchParams.get("search")?.trim() || "";
+    const tag = searchParams.get("tag")?.trim() || "";
+    const mode = searchParams.get("mode")?.trim() || "";
 
-    return NextResponse.json({ message: 'Events fetched successfully', events }, { status: 200 });
+    // Build query
+    const query: Record<string, unknown> = {};
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
+      ];
+    }
+
+    if (tag) {
+      query.tags = { $in: [new RegExp(tag, "i")] };
+    }
+
+    if (mode) {
+      query.mode = { $regex: new RegExp(`^${mode}$`, "i") };
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+    const total = await Event.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // Fetch events
+    const docs = await Event.find(query)
+      .sort({ createdAt: -1 })
+      .select("-__v")
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    const events = docs.map((doc) => toEventResponse(doc as EventDocument));
+
+    return NextResponse.json(
+      {
+        message: "Events fetched successfully",
+        events,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      },
+      { status: 200 }
+    );
   } catch (err: unknown) {
     const mapped: ApiError | null = mapMongoError(err);
-    if (mapped) return NextResponse.json(mapped.body, { status: mapped.status });
+    if (mapped)
+      return NextResponse.json(mapped.body, { status: mapped.status });
 
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('GET /api/events failed:', err);
-    return jsonError(500, { message: 'Event fetching failed', code: 'INTERNAL_SERVER_ERROR', details: { error: message } });
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("GET /api/events failed:", err);
+    return jsonError(500, {
+      message: "Event fetching failed",
+      code: "INTERNAL_SERVER_ERROR",
+      details: { error: message },
+    });
   }
 }
