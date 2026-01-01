@@ -9,16 +9,15 @@ import { IEvent } from "@/database";
 async function FeaturedEvents() {
   // Access cookies first to satisfy Next.js requirement before using Date.now()
   // This establishes the request context before any time-based operations
-  await cookies();
+  try {
+    await cookies();
+  } catch (error) {
+    console.error('Error accessing cookies:', error);
+    // Continue even if cookies fail
+  }
 
   try {
     await connectDB();
-    
-    // Verify connection before querying
-    const mongoose = await import('mongoose');
-    if (mongoose.default.connection.readyState !== 1) {
-      throw new Error('Database connection not ready');
-    }
     
     console.log('Fetching events from database...');
     const events = (await Event.find()

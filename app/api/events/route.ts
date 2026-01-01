@@ -397,15 +397,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
-    
-    // Verify connection before querying
-    const mongoose = await import('mongoose');
-    if (mongoose.default.connection.readyState !== 1) {
-      return jsonError(503, {
-        message: 'Database connection not ready',
-        code: 'DATABASE_UNAVAILABLE',
-      });
-    }
 
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));

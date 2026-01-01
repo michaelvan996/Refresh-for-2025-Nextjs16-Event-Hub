@@ -31,9 +31,13 @@ if (!global.mongoose) {
 async function connectDB(): Promise<typeof mongoose> {
   // Check if MONGODB_URI is defined
   if (!MONGODB_URI) {
-    const error = new Error('Please define the MONGODB_URI environment variable');
-    console.error('MongoDB connection error:', error.message);
-    throw error;
+    const errorMessage = 'MONGODB_URI environment variable is not defined';
+    console.error('MongoDB connection error:', errorMessage);
+    // In production, provide a more helpful error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Please set MONGODB_URI in your Vercel environment variables');
+    }
+    throw new Error(errorMessage);
   }
 
   // Return cached connection if it exists and is still connected
@@ -82,9 +86,22 @@ async function connectDB(): Promise<typeof mongoose> {
   try {
     cached.conn = await cached.promise;
     
-    // Verify connection is actually ready
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error(`MongoDB connection not ready. State: ${mongoose.connection.readyState}`);
+    // Verify connection is actually ready, but don't throw if it's connecting (state 2)
+    // State 1 = connected, State 2 = connecting, State 0 = disconnected
+    const readyState = mongoose.connection.readyState;
+    if (readyState === 0) {
+      // Connection is disconnected, clear and retry
+      cached.conn = null;
+      cached.promise = null;
+      throw new Error('MongoDB connection disconnected');
+    }
+    
+    // If connecting (state 2), wait a bit and check again
+    if (readyState === 2) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('MongoDB connection timeout');
+      }
     }
     
     return cached.conn;
@@ -94,6 +111,7 @@ async function connectDB(): Promise<typeof mongoose> {
     console.error('MongoDB connection failed:', {
       message: error.message,
       stack: error.stack,
+      readyState: mongoose.connection.readyState,
     });
     throw error;
   }

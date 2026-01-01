@@ -240,12 +240,6 @@ const EventDetailsContent = async ({
   try {
     await connectDB();
     
-    // Verify connection before querying
-    const mongoose = await import('mongoose');
-    if (mongoose.default.connection.readyState !== 1) {
-      throw new Error('Database connection not ready');
-    }
-    
     console.log(`Fetching event with slug: ${slug}`);
     const event = (await Event.findOne({ slug }).lean().exec()) as IEvent | null;
     
