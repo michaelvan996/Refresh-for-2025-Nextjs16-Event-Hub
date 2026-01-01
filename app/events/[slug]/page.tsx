@@ -237,10 +237,11 @@ const EventDetailsContent = async ({
   cacheLife("hours");
   const { slug } = await params;
 
-  await connectDB();
-  const event = (await Event.findOne({ slug }).lean()) as IEvent | null;
+  try {
+    await connectDB();
+    const event = (await Event.findOne({ slug }).lean()) as IEvent | null;
 
-  if (!event) return notFound();
+    if (!event) return notFound();
 
   const {
     title,
@@ -405,5 +406,9 @@ const EventDetailsContent = async ({
       </div>
     </section>
   );
+  } catch (error) {
+    console.error("Failed to load event:", error);
+    return notFound();
+  }
 };
 export default EventDetailsPage;

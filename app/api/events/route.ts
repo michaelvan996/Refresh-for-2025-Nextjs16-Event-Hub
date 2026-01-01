@@ -6,6 +6,13 @@ import connectDB from "@/lib/mongodb";
 import Event, { type Event as EventDocument } from "@/database/event.model";
 import { mapMongoError, type ApiError } from "@/lib/mongoErrorMapper";
 
+// Configure Cloudinary with environment variables
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 type ErrorResponse = {
   message: string;
   code: string;
@@ -221,6 +228,11 @@ function validateCreateEventInput(
  * @throws Error if the upload fails or Cloudinary returns no result
  */
 async function uploadEventImage(file: File): Promise<CloudinaryUploadResult> {
+  // Validate Cloudinary configuration
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new Error("Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.");
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 

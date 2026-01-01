@@ -11,33 +11,59 @@ async function FeaturedEvents() {
   // This establishes the request context before any time-based operations
   await cookies();
 
-  await connectDB();
-  const events = (await Event.find()
-    .sort({ createdAt: -1 })
-    .lean()) as unknown as IEvent[];
+  try {
+    await connectDB();
+    const events = (await Event.find()
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .lean()) as unknown as IEvent[];
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
-        <div>
-          <h3>Featured events</h3>
-          <p className="mt-1 text-sm text-light-200">
-            Curated meetups, hackathons and conferences for modern tech teams.
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
+          <div>
+            <h3>Featured events</h3>
+            <p className="mt-1 text-sm text-light-200">
+              Curated meetups, hackathons and conferences for modern tech teams.
+            </p>
+          </div>
+        </div>
+
+        {events && events.length > 0 ? (
+          <ul className="events">
+            {events.map((event: any) => (
+              <li key={event.slug} className="list-none">
+                <EventCard {...event} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-8 text-center">
+            <p className="text-light-200">No events found. Be the first to create one!</p>
+          </div>
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error("Failed to load events:", error);
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
+          <div>
+            <h3>Featured events</h3>
+            <p className="mt-1 text-sm text-light-200">
+              Curated meetups, hackathons and conferences for modern tech teams.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-8 text-center">
+          <p className="text-light-200">
+            Unable to load events at this time. Please try again later.
           </p>
         </div>
       </div>
-
-      <ul className="events">
-        {events &&
-          events.length > 0 &&
-          events.map((event: any) => (
-            <li key={event.slug} className="list-none">
-              <EventCard {...event} />
-            </li>
-          ))}
-      </ul>
-    </div>
-  );
+    );
+  }
 }
 
 const Page = () => {

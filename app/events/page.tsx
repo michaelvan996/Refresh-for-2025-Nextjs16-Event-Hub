@@ -9,36 +9,61 @@ async function EventsContent() {
   // Access cookies first to satisfy Next.js requirement before using Date.now()
   await cookies();
 
-  await connectDB();
+  try {
+    await connectDB();
 
-  const events = (await Event.find()
-    .sort({ date: 1, time: 1 })
-    .lean()) as unknown as IEvent[];
+    const events = (await Event.find()
+      .sort({ date: 1, time: 1 })
+      .lean()) as unknown as IEvent[];
 
-  return (
-    <div className="section-shell flex flex-col gap-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2>Events</h2>
-          <p className="text-sm text-light-200">
-            {events.length > 0
-              ? `Showing ${events.length} event${events.length > 1 ? "s" : ""}.`
-              : "No events yet. Be the first to host one."}
+    return (
+      <div className="section-shell flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2>Events</h2>
+            <p className="text-sm text-light-200">
+              {events.length > 0
+                ? `Showing ${events.length} event${events.length > 1 ? "s" : ""}.`
+                : "No events yet. Be the first to host one."}
+            </p>
+          </div>
+        </div>
+
+        {events.length > 0 ? (
+          <ul className="events">
+            {events.map((event: any) => (
+              <li key={event.slug} className="list-none">
+                <EventCard {...event} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-8 text-center">
+            <p className="text-light-200">No events found. Be the first to create one!</p>
+          </div>
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error("Failed to load events:", error);
+    return (
+      <div className="section-shell flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2>Events</h2>
+            <p className="text-sm text-light-200">
+              Unable to load events at this time.
+            </p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-8 text-center">
+          <p className="text-light-200">
+            Unable to load events at this time. Please try again later.
           </p>
         </div>
       </div>
-
-      {events.length > 0 ? (
-        <ul className="events">
-          {events.map((event: any) => (
-            <li key={event.slug} className="list-none">
-              <EventCard {...event} />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
+    );
+  }
 }
 
 const EventsPage = async () => {
