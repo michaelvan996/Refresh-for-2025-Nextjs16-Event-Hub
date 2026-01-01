@@ -238,183 +238,185 @@ const EventDetailsContent = async ({
   cacheLife("hours");
   const { slug } = await params;
 
-  // Establish request context before any database operations
-  // This satisfies Next.js 16 requirement for accessing time-based operations
-  await headers();
-
   try {
     await connectDB();
-    
+
     console.log(`Fetching event with slug: ${slug}`);
-    const event = (await Event.findOne({ slug }).lean().exec()) as IEvent | null;
-    
-    console.log(event ? 'Event found' : 'Event not found');
+    const event = (await Event.findOne({ slug })
+      .lean()
+      .exec()) as IEvent | null;
+
+    console.log(event ? "Event found" : "Event not found");
 
     if (!event) return notFound();
 
-  const {
-    title,
-    description,
-    image,
-    overview,
-    date,
-    time,
-    location,
-    mode,
-    agenda: rawAgenda,
-    audience,
-    tags: rawTags,
-    organizer,
-  } = event as IEvent & { title?: string };
+    const {
+      title,
+      description,
+      image,
+      overview,
+      date,
+      time,
+      location,
+      mode,
+      agenda: rawAgenda,
+      audience,
+      tags: rawTags,
+      organizer,
+    } = event as IEvent & { title?: string };
 
-  if (!description) return notFound();
+    if (!description) return notFound();
 
-  // Parse and normalize tags and agenda to ensure they're arrays
-  // This handles cases where data might be stored as string representations like "[\"Cloud\", \"DevOps\"]"
-  let agenda = parseStringArray(rawAgenda);
-  let tags = parseStringArray(rawTags);
+    // Parse and normalize tags and agenda to ensure they're arrays
+    // This handles cases where data might be stored as string representations like "[\"Cloud\", \"DevOps\"]"
+    let agenda = parseStringArray(rawAgenda);
+    let tags = parseStringArray(rawTags);
 
-  // Recursive parsing: keep parsing until we get a proper array
-  let agendaAttempts = 0;
-  while (
-    agenda.length === 1 &&
-    typeof agenda[0] === "string" &&
-    agenda[0].trim().startsWith("[") &&
-    agendaAttempts < 3
-  ) {
-    agenda = parseStringArray(agenda[0]);
-    agendaAttempts++;
-  }
+    // Recursive parsing: keep parsing until we get a proper array
+    let agendaAttempts = 0;
+    while (
+      agenda.length === 1 &&
+      typeof agenda[0] === "string" &&
+      agenda[0].trim().startsWith("[") &&
+      agendaAttempts < 3
+    ) {
+      agenda = parseStringArray(agenda[0]);
+      agendaAttempts++;
+    }
 
-  let tagsAttempts = 0;
-  while (
-    tags.length === 1 &&
-    typeof tags[0] === "string" &&
-    tags[0].trim().startsWith("[") &&
-    tagsAttempts < 3
-  ) {
-    tags = parseStringArray(tags[0]);
-    tagsAttempts++;
-  }
+    let tagsAttempts = 0;
+    while (
+      tags.length === 1 &&
+      typeof tags[0] === "string" &&
+      tags[0].trim().startsWith("[") &&
+      tagsAttempts < 3
+    ) {
+      tags = parseStringArray(tags[0]);
+      tagsAttempts++;
+    }
 
-  // Final validation: ensure we have valid arrays
-  if (!Array.isArray(agenda) || agenda.length === 0) {
-    agenda = [];
-  }
-  if (!Array.isArray(tags) || tags.length === 0) {
-    tags = [];
-  }
+    // Final validation: ensure we have valid arrays
+    if (!Array.isArray(agenda) || agenda.length === 0) {
+      agenda = [];
+    }
+    if (!Array.isArray(tags) || tags.length === 0) {
+      tags = [];
+    }
 
-  const bookings = 10;
+    const bookings = 10;
 
-  const similarEvents = await getSimilarEventsBySlug(slug);
+    const similarEvents = await getSimilarEventsBySlug(slug);
 
-  return (
-    <section id="event">
-      <div className="header">
-        <p className="section-label">Event</p>
-        <h1>{title ?? "Tech event"}</h1>
-        <p>{description}</p>
-      </div>
-
-      <div className="details">
-        {/* Left Side - Event Content */}
-        <div className="content">
-          <Image
-            src={image}
-            alt="Event Banner"
-            width={800}
-            height={800}
-            className="banner"
-          />
-
-          <section className="section-shell flex-col-gap-2">
-            <p className="section-label">Overview</p>
-            <h2>Overview</h2>
-            <p>{overview}</p>
-          </section>
-
-          <section className="section-shell flex-col-gap-2">
-            <p className="section-label">Event details</p>
-            <div className="flex flex-col gap-3">
-              <EventDetailItem
-                icon="/icons/calendar.svg"
-                alt="calendar"
-                label={date}
-              />
-              <EventDetailItem
-                icon="/icons/calendar.svg"
-                alt="calendar"
-                label={time}
-              />
-              <EventDetailItem
-                icon="/icons/pin.svg"
-                alt="pin"
-                label={location}
-              />
-              <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode} />
-              <EventDetailItem
-                icon="/icons/audience.svg"
-                alt="audience"
-                label={audience}
-              />
-            </div>
-          </section>
-
-          <EventAgenda agendaItems={agenda} />
-
-          <section className="section-shell flex-col-gap-2">
-            <p className="section-label">Organizer</p>
-            <h2>About the organizer</h2>
-            <p>{organizer}</p>
-          </section>
-
-          <EventTags tags={tags} />
+    return (
+      <section id="event">
+        <div className="header">
+          <p className="section-label">Event</p>
+          <h1>{title ?? "Tech event"}</h1>
+          <p>{description}</p>
         </div>
 
-        {/* Right Side - Booking Form */}
+        <div className="details">
+          {/* Left Side - Event Content */}
+          <div className="content">
+            <Image
+              src={image}
+              alt="Event Banner"
+              width={800}
+              height={800}
+              className="banner"
+            />
 
-        <aside className="booking">
-          <div className="signup-card">
-            <p className="section-label">Booking</p>
-            <h2>Book your spot</h2>
-            {bookings > 0 ? (
-              <p className="text-sm text-light-200">
-                Join {bookings} others already attending.
-              </p>
-            ) : (
-              <p className="text-sm text-light-200">
-                Be the first to book your spot.
-              </p>
-            )}
+            <section className="section-shell flex-col-gap-2">
+              <p className="section-label">Overview</p>
+              <h2>Overview</h2>
+              <p>{overview}</p>
+            </section>
 
-            <BookEvent eventId={event._id.toString()} slug={event.slug} />
-          </div>
-        </aside>
-      </div>
-
-      <div className="pt-16 w-full">
-        <section className="section-shell flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="section-label">Discover more</p>
-              <h2>Similar events</h2>
-            </div>
-          </div>
-
-          <div className="events">
-            {similarEvents.length > 0 &&
-              similarEvents.map((similarEvent: any) => (
-                <EventCard
-                  key={similarEvent.slug ?? similarEvent._id?.toString()}
-                  {...similarEvent}
+            <section className="section-shell flex-col-gap-2">
+              <p className="section-label">Event details</p>
+              <div className="flex flex-col gap-3">
+                <EventDetailItem
+                  icon="/icons/calendar.svg"
+                  alt="calendar"
+                  label={date}
                 />
-              ))}
+                <EventDetailItem
+                  icon="/icons/calendar.svg"
+                  alt="calendar"
+                  label={time}
+                />
+                <EventDetailItem
+                  icon="/icons/pin.svg"
+                  alt="pin"
+                  label={location}
+                />
+                <EventDetailItem
+                  icon="/icons/mode.svg"
+                  alt="mode"
+                  label={mode}
+                />
+                <EventDetailItem
+                  icon="/icons/audience.svg"
+                  alt="audience"
+                  label={audience}
+                />
+              </div>
+            </section>
+
+            <EventAgenda agendaItems={agenda} />
+
+            <section className="section-shell flex-col-gap-2">
+              <p className="section-label">Organizer</p>
+              <h2>About the organizer</h2>
+              <p>{organizer}</p>
+            </section>
+
+            <EventTags tags={tags} />
           </div>
-        </section>
-      </div>
-    </section>
-  );
+
+          {/* Right Side - Booking Form */}
+
+          <aside className="booking">
+            <div className="signup-card">
+              <p className="section-label">Booking</p>
+              <h2>Book your spot</h2>
+              {bookings > 0 ? (
+                <p className="text-sm text-light-200">
+                  Join {bookings} others already attending.
+                </p>
+              ) : (
+                <p className="text-sm text-light-200">
+                  Be the first to book your spot.
+                </p>
+              )}
+
+              <BookEvent eventId={event._id.toString()} slug={event.slug} />
+            </div>
+          </aside>
+        </div>
+
+        <div className="pt-16 w-full">
+          <section className="section-shell flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="section-label">Discover more</p>
+                <h2>Similar events</h2>
+              </div>
+            </div>
+
+            <div className="events">
+              {similarEvents.length > 0 &&
+                similarEvents.map((similarEvent: any) => (
+                  <EventCard
+                    key={similarEvent.slug ?? similarEvent._id?.toString()}
+                    {...similarEvent}
+                  />
+                ))}
+            </div>
+          </section>
+        </div>
+      </section>
+    );
   } catch (error) {
     console.error("Failed to load event:", error);
     return notFound();
