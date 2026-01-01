@@ -67,7 +67,6 @@ function parseStringArray(data: unknown): string[] {
         // More robust regex: matches quoted strings with escaped quotes
         const regex = /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g;
         let match;
-        let lastIndex = 0;
 
         while ((match = regex.exec(trimmed)) !== null) {
           const content = match[2];
@@ -80,7 +79,6 @@ function parseStringArray(data: unknown): string[] {
           if (unescaped.length > 0) {
             items.push(unescaped);
           }
-          lastIndex = regex.lastIndex;
         }
 
         // If regex found items, return them
@@ -165,7 +163,7 @@ const EventAgenda = ({
           if (!cleanItem) return null;
           return (
             <li key={index} className="flex items-start gap-3 text-light-100">
-              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
               <span className="flex-1">{cleanItem}</span>
             </li>
           );
@@ -237,11 +235,17 @@ const EventDetailsContent = async ({
   cacheLife("hours");
   const { slug } = await params;
 
+  // Fetch and process data in try/catch
+  let event: IEvent | null = null;
+  let agenda: string[] = [];
+  let tags: string[] = [];
+  let similarEvents: IEvent[] = [];
+
   try {
     await connectDB();
 
     console.log(`Fetching event with slug: ${slug}`);
-    const event = (await Event.findOne({ slug })
+    event = (await Event.findOne({ slug })
       .lean()
       .exec()) as IEvent | null;
 
@@ -250,26 +254,14 @@ const EventDetailsContent = async ({
     if (!event) return notFound();
 
     const {
-      title,
-      description,
-      image,
-      overview,
-      date,
-      time,
-      location,
-      mode,
       agenda: rawAgenda,
-      audience,
       tags: rawTags,
-      organizer,
     } = event as IEvent & { title?: string };
-
-    if (!description) return notFound();
 
     // Parse and normalize tags and agenda to ensure they're arrays
     // This handles cases where data might be stored as string representations like "[\"Cloud\", \"DevOps\"]"
-    let agenda = parseStringArray(rawAgenda);
-    let tags = parseStringArray(rawTags);
+    agenda = parseStringArray(rawAgenda);
+    tags = parseStringArray(rawTags);
 
     // Recursive parsing: keep parsing until we get a proper array
     let agendaAttempts = 0;
@@ -302,123 +294,147 @@ const EventDetailsContent = async ({
       tags = [];
     }
 
-    const bookings = 10;
-
-    const similarEvents = await getSimilarEventsBySlug(slug);
-
-    return (
-      <section id="event">
-        <div className="header">
-          <p className="section-label">Event</p>
-          <h1>{title ?? "Tech event"}</h1>
-          <p>{description}</p>
-        </div>
-
-        <div className="details">
-          {/* Left Side - Event Content */}
-          <div className="content">
-            <Image
-              src={image}
-              alt="Event Banner"
-              width={800}
-              height={800}
-              className="banner"
-            />
-
-            <section className="section-shell flex-col-gap-2">
-              <p className="section-label">Overview</p>
-              <h2>Overview</h2>
-              <p>{overview}</p>
-            </section>
-
-            <section className="section-shell flex-col-gap-2">
-              <p className="section-label">Event details</p>
-              <div className="flex flex-col gap-3">
-                <EventDetailItem
-                  icon="/icons/calendar.svg"
-                  alt="calendar"
-                  label={date}
-                />
-                <EventDetailItem
-                  icon="/icons/calendar.svg"
-                  alt="calendar"
-                  label={time}
-                />
-                <EventDetailItem
-                  icon="/icons/pin.svg"
-                  alt="pin"
-                  label={location}
-                />
-                <EventDetailItem
-                  icon="/icons/mode.svg"
-                  alt="mode"
-                  label={mode}
-                />
-                <EventDetailItem
-                  icon="/icons/audience.svg"
-                  alt="audience"
-                  label={audience}
-                />
-              </div>
-            </section>
-
-            <EventAgenda agendaItems={agenda} />
-
-            <section className="section-shell flex-col-gap-2">
-              <p className="section-label">Organizer</p>
-              <h2>About the organizer</h2>
-              <p>{organizer}</p>
-            </section>
-
-            <EventTags tags={tags} />
-          </div>
-
-          {/* Right Side - Booking Form */}
-
-          <aside className="booking">
-            <div className="signup-card">
-              <p className="section-label">Booking</p>
-              <h2>Book your spot</h2>
-              {bookings > 0 ? (
-                <p className="text-sm text-light-200">
-                  Join {bookings} others already attending.
-                </p>
-              ) : (
-                <p className="text-sm text-light-200">
-                  Be the first to book your spot.
-                </p>
-              )}
-
-              <BookEvent eventId={event._id.toString()} slug={event.slug} />
-            </div>
-          </aside>
-        </div>
-
-        <div className="pt-16 w-full">
-          <section className="section-shell flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="section-label">Discover more</p>
-                <h2>Similar events</h2>
-              </div>
-            </div>
-
-            <div className="events">
-              {similarEvents.length > 0 &&
-                similarEvents.map((similarEvent: any) => (
-                  <EventCard
-                    key={similarEvent.slug ?? similarEvent._id?.toString()}
-                    {...similarEvent}
-                  />
-                ))}
-            </div>
-          </section>
-        </div>
-      </section>
-    );
+    const similarEventsResult = await getSimilarEventsBySlug(slug);
+    similarEvents = similarEventsResult as unknown as IEvent[];
   } catch (error) {
     console.error("Failed to load event:", error);
     return notFound();
   }
+
+  // Early return if event not found (after try/catch)
+  if (!event) return notFound();
+
+  const {
+    title,
+    description,
+    image,
+    overview,
+    date,
+    time,
+    location,
+    mode,
+    audience,
+    organizer,
+  } = event as IEvent & { title?: string };
+
+  if (!description) return notFound();
+
+  const bookings = 10;
+
+  // Return JSX outside of try/catch
+  return (
+    <section id="event">
+      <div className="header">
+        <p className="section-label">Event</p>
+        <h1>{title ?? "Tech event"}</h1>
+        <p>{description}</p>
+      </div>
+
+      <div className="details">
+        {/* Left Side - Event Content */}
+        <div className="content">
+          <Image
+            src={image}
+            alt="Event Banner"
+            width={800}
+            height={800}
+            className="banner"
+          />
+
+          <section className="section-shell flex-col-gap-2">
+            <p className="section-label">Overview</p>
+            <h2>Overview</h2>
+            <p>{overview}</p>
+          </section>
+
+          <section className="section-shell flex-col-gap-2">
+            <p className="section-label">Event details</p>
+            <div className="flex flex-col gap-3">
+              <EventDetailItem
+                icon="/icons/calendar.svg"
+                alt="calendar"
+                label={date}
+              />
+              <EventDetailItem
+                icon="/icons/calendar.svg"
+                alt="calendar"
+                label={time}
+              />
+              <EventDetailItem
+                icon="/icons/pin.svg"
+                alt="pin"
+                label={location}
+              />
+              <EventDetailItem
+                icon="/icons/mode.svg"
+                alt="mode"
+                label={mode}
+              />
+              <EventDetailItem
+                icon="/icons/audience.svg"
+                alt="audience"
+                label={audience}
+              />
+            </div>
+          </section>
+
+          <EventAgenda agendaItems={agenda} />
+
+          <section className="section-shell flex-col-gap-2">
+            <p className="section-label">Organizer</p>
+            <h2>About the organizer</h2>
+            <p>{organizer}</p>
+          </section>
+
+          <EventTags tags={tags} />
+        </div>
+
+        {/* Right Side - Booking Form */}
+
+        <aside className="booking">
+          <div className="signup-card">
+            <p className="section-label">Booking</p>
+            <h2>Book your spot</h2>
+            {bookings > 0 ? (
+              <p className="text-sm text-light-200">
+                Join {bookings} others already attending.
+              </p>
+            ) : (
+              <p className="text-sm text-light-200">
+                Be the first to book your spot.
+              </p>
+            )}
+
+            <BookEvent eventId={event._id.toString()} slug={event.slug} />
+          </div>
+        </aside>
+      </div>
+
+      <div className="pt-16 w-full">
+        <section className="section-shell flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="section-label">Discover more</p>
+              <h2>Similar events</h2>
+            </div>
+          </div>
+
+          <div className="events">
+            {similarEvents.length > 0 &&
+              similarEvents.map((similarEvent, index) => {
+                const eventId = (similarEvent as IEvent)._id?.toString() ?? '';
+                const eventSlug = (similarEvent as IEvent).slug ?? '';
+                return (
+                  <EventCard
+                    key={eventSlug || eventId || `similar-event-${index}`}
+                    {...(similarEvent as IEvent)}
+                  />
+                );
+              })}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
 };
 export default EventDetailsPage;
