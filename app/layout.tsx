@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import LightRays from "@/components/LightRays";
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 import React, { Suspense } from "react";
 import PostHogAnalytics from "@/components/PostHogAnalytics";
 
@@ -85,7 +85,7 @@ export default function RootLayout({
       >
         <PostHogAnalytics />
         <Suspense fallback={<div className="h-16" />}>
-          <Navbar />
+          <NavbarWrapper />
         </Suspense>
         <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
           <LightRays
