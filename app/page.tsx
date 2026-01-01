@@ -5,9 +5,6 @@ import connectDB from "@/lib/mongodb";
 import Event from "@/database/event.model";
 import { IEvent } from "@/database";
 
-// Force dynamic rendering since we're fetching from database
-export const dynamic = 'force-dynamic';
-
 async function FeaturedEvents() {
   try {
     await connectDB();

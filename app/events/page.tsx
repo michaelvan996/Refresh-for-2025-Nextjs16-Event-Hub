@@ -4,9 +4,6 @@ import Event from "@/database/event.model";
 import { IEvent } from "@/database";
 import EventCard from "@/components/EventCard";
 
-// Force dynamic rendering since we're fetching from database
-export const dynamic = 'force-dynamic';
-
 async function EventsContent() {
   try {
     await connectDB();
