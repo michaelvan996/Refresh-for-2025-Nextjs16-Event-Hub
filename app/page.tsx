@@ -1,21 +1,14 @@
 import React, { Suspense } from "react";
-import { cookies } from "next/headers";
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
 import connectDB from "@/lib/mongodb";
 import Event from "@/database/event.model";
 import { IEvent } from "@/database";
 
-async function FeaturedEvents() {
-  // Access cookies first to satisfy Next.js requirement before using Date.now()
-  // This establishes the request context before any time-based operations
-  try {
-    await cookies();
-  } catch (error) {
-    console.error('Error accessing cookies:', error);
-    // Continue even if cookies fail
-  }
+// Force dynamic rendering since we're fetching from database
+export const dynamic = 'force-dynamic';
 
+async function FeaturedEvents() {
   try {
     await connectDB();
     
