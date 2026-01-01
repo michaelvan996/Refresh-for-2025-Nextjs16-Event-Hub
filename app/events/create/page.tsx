@@ -1,58 +1,5 @@
 import React from "react";
-import { redirect } from "next/navigation";
-import connectDB from "@/lib/mongodb";
-import Event from "@/database/event.model";
-
-async function createEvent(formData: FormData) {
-  "use server";
-
-  await connectDB();
-
-  const title = String(formData.get("title") || "").trim();
-  const description = String(formData.get("description") || "").trim();
-  const overview = String(formData.get("overview") || "").trim();
-  const image = String(formData.get("image") || "").trim();
-  const venue = String(formData.get("venue") || "").trim();
-  const location = String(formData.get("location") || "").trim();
-  const date = String(formData.get("date") || "").trim();
-  const time = String(formData.get("time") || "").trim();
-  const mode = String(formData.get("mode") || "").trim();
-  const audience = String(formData.get("audience") || "").trim();
-  const organizer = String(formData.get("organizer") || "").trim();
-
-  const rawTags = String(formData.get("tags") || "");
-  const rawAgenda = String(formData.get("agenda") || "");
-
-  const tags = rawTags
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-
-  const agenda = rawAgenda
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  const event = new Event({
-    title,
-    description,
-    overview,
-    image,
-    venue,
-    location,
-    date,
-    time,
-    mode,
-    audience,
-    agenda,
-    organizer,
-    tags,
-  });
-
-  await event.save();
-
-  redirect(`/events/${event.slug}`);
-}
+import { createEventAction } from "@/lib/actions/event.actions";
 
 const CreateEventPage = () => {
   return (
@@ -69,7 +16,7 @@ const CreateEventPage = () => {
         <div className="content">
           <form
             id="create-event-form"
-            action={createEvent}
+            action={createEventAction}
             className="flex flex-col gap-6"
           >
             <section className="section-shell flex flex-col gap-4">
