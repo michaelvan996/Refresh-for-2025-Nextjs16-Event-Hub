@@ -1,10 +1,4 @@
-import posthog from "posthog-js"
-
-// Automatically initialized by Next.js to handle pageview tracking
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-  api_host: "/ingest",
-  ui_host: "https://us.posthog.com",
-  defaults: '2025-05-24',
-  capture_exceptions: true, // Enables capturing exceptions via Error Tracking
-  debug: process.env.NODE_ENV === "development",
-})
+// PostHog instrumentation for Next.js
+// Note: PostHog is already initialized via PostHogAnalytics component using CDN
+// This file is intentionally left empty to avoid conflicts
+// PostHog initialization is handled in components/PostHogAnalytics.tsx
