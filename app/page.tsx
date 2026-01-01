@@ -45,7 +45,15 @@ async function FeaturedEvents() {
       </div>
     );
   } catch (error) {
-    console.error("Failed to load events:", error);
+    // Log detailed error for debugging in Vercel logs
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to load events:", {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      hasMongoUri: !!process.env.MONGODB_URI,
+      mongoUriPrefix: process.env.MONGODB_URI?.substring(0, 20) + "...",
+    });
+    
     return (
       <div className="space-y-6">
         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
