@@ -83,14 +83,14 @@ async function FeaturedEvents() {
 
 const Page = () => {
   return (
-    <section id="home" className="relative pb-20 pt-16">
-      <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border-dark/60 bg-dark-100/60 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-light-200">
+    <section id="home" className="relative pb-12 sm:pb-16 lg:pb-20 pt-8 sm:pt-12 lg:pt-16">
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 sm:gap-6 text-center px-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border-dark/60 bg-dark-100/60 px-3 sm:px-4 py-1 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] text-light-200">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           <span>The hub for every tech event</span>
         </div>
 
-        <h1>
+        <h1 className="px-2">
           Discover &amp; share
           <br />
           <span className="text-primary">live tech events</span>
@@ -101,39 +101,39 @@ const Page = () => {
           conferences with your tech community.
         </p>
 
-        <div className="mt-7 flex items-center justify-center">
+        <div className="mt-6 sm:mt-7 flex items-center justify-center w-full sm:w-auto">
           <ExploreBtn />
         </div>
 
-        <div className="mt-8 grid w-full gap-4 text-left text-xs text-light-200 sm:grid-cols-3 sm:text-sm">
-          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-3">
-            <p className="font-martian-mono text-[11px] uppercase tracking-[0.18em] text-light-200">
+        <div className="mt-6 sm:mt-8 grid w-full gap-3 sm:gap-4 text-left text-xs sm:text-sm text-light-200 sm:grid-cols-3">
+          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-3 sm:px-4 py-2.5 sm:py-3">
+            <p className="font-martian-mono text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-light-200">
               For the community
             </p>
-            <p className="mt-1 text-sm font-semibold text-foreground">
+            <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground">
               Built for tech communities &amp; hubs.
             </p>
           </div>
-          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-3">
-            <p className="font-martian-mono text-[11px] uppercase tracking-[0.18em] text-light-200">
+          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-3 sm:px-4 py-2.5 sm:py-3">
+            <p className="font-martian-mono text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-light-200">
               This week
             </p>
-            <p className="mt-1 text-sm font-semibold text-foreground">
+            <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground">
               Discover what&apos;s happening around you.
             </p>
           </div>
-          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-4 py-3">
-            <p className="font-martian-mono text-[11px] uppercase tracking-[0.18em] text-light-200">
+          <div className="rounded-xl border border-border-dark/60 bg-dark-100/70 px-3 sm:px-4 py-2.5 sm:py-3">
+            <p className="font-martian-mono text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-light-200">
               For organizers
             </p>
-            <p className="mt-1 text-sm font-semibold text-foreground">
+            <p className="mt-1 text-xs sm:text-sm font-semibold text-foreground">
               Share events with the right audience.
             </p>
           </div>
         </div>
       </div>
 
-      <div id="events" className="mt-16">
+      <div id="events" className="mt-12 sm:mt-14 lg:mt-16">
         <Suspense fallback={<div>Loading events...</div>}>
           <FeaturedEvents />
         </Suspense>

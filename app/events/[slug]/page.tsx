@@ -24,7 +24,8 @@ const EventDetailItem = ({
       alt={alt}
       width={17}
       height={17}
-      style={{ height: "auto" }}
+      style={{ width: "auto", height: "auto" }}
+      className="shrink-0"
     />
     <p>{label}</p>
   </div>
@@ -336,6 +337,8 @@ const EventDetailsContent = async ({
             width={800}
             height={800}
             className="banner"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 800px"
+            priority
           />
 
           <section className="section-shell flex-col-gap-2">

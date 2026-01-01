@@ -3,6 +3,7 @@ import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import LightRays from "@/components/LightRays";
 import NavbarWrapper from "@/components/NavbarWrapper";
+import MobileBottomNavWrapper from "@/components/MobileBottomNavWrapper";
 import React, { Suspense } from "react";
 import PostHogAnalytics from "@/components/PostHogAnalytics";
 
@@ -73,6 +74,13 @@ export const metadata: Metadata = {
   ),
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -102,6 +110,9 @@ export default function RootLayout({
           />
         </div>
         <main>{children}</main>
+        <Suspense fallback={null}>
+          <MobileBottomNavWrapper />
+        </Suspense>
       </body>
     </html>
   );
