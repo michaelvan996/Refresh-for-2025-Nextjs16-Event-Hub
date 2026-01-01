@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import BookEvent from "@/components/BookEvent";
 import { IEvent } from "@/database";
 import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
